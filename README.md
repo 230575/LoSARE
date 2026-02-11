@@ -18,7 +18,7 @@ Our experiment scripts are validated on Python 3.9 with PyTorch 2.2.2.
 For instance, to pre-train a 60M model on C4 dataset, execute the following command:
 ```bash
 # LLaMA-60M, LoSARE-Adam, 1 A100, 1 Node
-torchrun --standalone --nproc_per_node 2 torchrun_main.py \
+torchrun --standalone --nproc_per_node 1 torchrun_main.py \
     --model_config llama_configs/llama_60m.json \
     --lr 0.01 \
     --alpha 0.25 \
