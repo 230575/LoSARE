@@ -137,7 +137,7 @@ class AdamW(Optimizer):
                     sub_norm = torch.norm(grad, dim=norm_dim)
                     resid_norm = torch.norm(resid, dim=norm_dim)
                     energy_ratio = resid_norm.pow(2) / (sub_norm.pow(2) + 1e-8)
-                    dynamic_boost = 1 + group["dynamic_alpha"] * energy_ratio
+                    dynamic_boost = 1 + group["dynamic_alpha"] * (energy_ratio / (1 + energy_ratio))
 
                     scaling_factor = dynamic_boost * (
                         torch.norm(norm_grad, dim=norm_dim) /
@@ -148,17 +148,17 @@ class AdamW(Optimizer):
                     scaling_grad = resid * scaling_factor
 
                     # Norm-Growth Limiter
-                    #if "scaling_grad" in state:
-                    #    scaling_grad_norm = torch.norm(scaling_grad)
-                    #    limiter = max(
-                    #            scaling_grad_norm / 
-                    #            (state["scaling_grad"] + 1e-8),
-                    #            1.01,
-                    #        ) / 1.01
-                    #    scaling_grad = scaling_grad / limiter
-                    #    state["scaling_grad"] = scaling_grad_norm / limiter
-                    #else:
-                    #    state["scaling_grad"] = torch.norm(scaling_grad)
+                    if "scaling_grad" in state:
+                        scaling_grad_norm = torch.norm(scaling_grad)
+                        limiter = max(
+                                scaling_grad_norm / 
+                                (state["scaling_grad"] + 1e-8),
+                                1 + group["dynamic_alpha"],
+                            ) / (1 + group["dynamic_alpha"])
+                        scaling_grad = scaling_grad / limiter
+                        state["scaling_grad"] = scaling_grad_norm / limiter
+                    else:
+                        state["scaling_grad"] = torch.norm(scaling_grad)
                     
                     norm_grad = state["projector"].project_back(norm_grad) + scaling_grad
                     
