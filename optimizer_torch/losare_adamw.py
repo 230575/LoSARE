@@ -153,8 +153,8 @@ class AdamW(Optimizer):
                         limiter = max(
                                 scaling_grad_norm / 
                                 (state["scaling_grad"] + 1e-8),
-                                1 + group["dynamic_alpha"],
-                            ) / (1 + group["dynamic_alpha"])
+                                1.01,
+                            ) / 1.01
                         scaling_grad = scaling_grad / limiter
                         state["scaling_grad"] = scaling_grad_norm / limiter
                     else:
